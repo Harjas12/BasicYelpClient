@@ -7,14 +7,19 @@
 //
 
 import UIKit
+import CoreLocation
 
-class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating {
+
+class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, CLLocationManagerDelegate {
     
     @IBOutlet weak var tableView: UITableView!
     
     var businesses: [Business]!
-    var businessesFiltered: [Business]!
     var searchController: UISearchController!;
+    
+    let locationManager: CLLocationManager = CLLocationManager()
+    var locationString: String = ""
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,6 +29,10 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = 120
         
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+        
         
         searchController = UISearchController(searchResultsController: nil)
         searchController.searchResultsUpdater = self
@@ -32,8 +41,8 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         searchController.hidesNavigationBarDuringPresentation = false
         navigationItem.titleView = searchController.searchBar
         definesPresentationContext = true
-        
-        
+        queryYelp(searchTerm: "restaurants")
+        /*
         Business.searchWithTerm(term: "thai", completion: { (businesses: [Business]?, error: Error?) -> Void in
             
             self.businesses = businesses
@@ -49,6 +58,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
             }
 
         )
+        */
         
         /* Example of Yelp search with more search options specified
          Business.searchWithTerm("Restaurants", sort: .distance, categories: ["asianfusion", "burgers"], deals: true) { (businesses: [Business]!, error: Error!) -> Void in
@@ -62,36 +72,53 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
          */
         
     }
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if locations.count > 0 {
+            let coordinate = locations[0].coordinate
+            let latitude = coordinate.latitude.description
+            let longitude = coordinate.longitude.description
+            locationString = latitude + ", " + longitude
+            queryYelp(searchTerm: "restaurants")
+            manager.stopUpdatingLocation()
+        }
+    }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         let navBar = navigationController!.navigationBar
-        navBar.barTintColor = .red
+        navBar.barTintColor = UIColor(red:0.77, green:0.07, blue:0.00, alpha:1.0)
         navBar.tintColor = .white
     }
     func updateSearchResults(for searchController: UISearchController) {
         if let searchText = searchController.searchBar.text {
-            if !searchText.isEmpty {
-                businessesFiltered = businesses.filter({ (business: Business) -> Bool in
-                    return business.name!.lowercased().range(of: searchText.lowercased()) != nil
-                })
-            } else {
-                businessesFiltered = businesses
-            }
+            queryYelp(searchTerm: searchText)
         }
         tableView.reloadData()
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if(businessesFiltered != nil) {
-            return businessesFiltered.count
+        
+       
+        if(businesses != nil) {
+            return businesses.count
         } else {
             print("busiinesses filtered is nil")
             return 0
         }
     }
+    func queryYelp(searchTerm: String) {
+        Business.searchWithTerm(locationString: locationString, term: searchTerm, completion: { (businesses: [Business]?, error: Error?) -> Void in
+            if let error = error{
+                print(error.localizedDescription)
+            }
+            self.businesses = businesses
+            self.tableView.reloadData()
+        }
+            
+        )
+    }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "BusinessCell", for: indexPath) as! BusinessCell
         
-        cell.business = businessesFiltered[indexPath.row]
+        cell.business = businesses[indexPath.row]
         
         return cell
     }

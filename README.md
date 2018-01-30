@@ -2,7 +2,7 @@
 
 **Basic Yelp Client** is a Yelp search app using the [Yelp API](http://www.yelp.com/developers/documentation/v2/search_api).
 
-Time spent: **3** hours spent in total
+Time spent: **4** hours spent in total
 
 ## User Stories
 
@@ -19,6 +19,10 @@ The following **optional** features are implemented:
 - [ ] Implement map view of restaurant results. (+3pt)
 - [ ] Implement the restaurant detail page. (+2pt)
 
+The following **additional** features are implemented:
+
+- [x] The app automatically tracks user location to give relevant information.
+
 Please list two areas of the assignment you'd like to **discuss further with your peers** during the next class (examples include better ways to implement something, how to extend your app in certain ways, etc):
 
 1. How to implement a search bar that would query the yelp api, and then update the table view.
@@ -34,7 +38,7 @@ GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 ## Notes
 
-The biggest challenge while developing this app was learning how to filter an array of a custom model.
+The biggest challenge with this app was quering the yelp api with the user's location.
 
 ## License
 
